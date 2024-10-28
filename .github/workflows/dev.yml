@@ -43,6 +43,21 @@ jobs:
           json_elements=$(IFS=,; echo "${json_array[*]}")
           json_output="{ \"environments\": [$json_elements] }"
           echo "environments=$json_output" | tee -a "$GITHUB_OUTPUT"
+  
+  exploring_descovered_services:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: discover_services_by_path
+    strategy:
+      matrix: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
+    
+    steps:
+    - name: List the name of the microcervie -> ${{ matrix.environments }}
+      run: |
+         echo ${{ matrix.environments }}
+
+
+
 
 
   Detect_Changes:
