@@ -4,11 +4,11 @@ services:
   nesttypescriptstarter:
     image: nesttypescriptstarter
     build:
-      context: services/auth
+      context: services/microone
       dockerfile: ./Dockerfile
     environment:
       NODE_ENV: development
     ports:
-      - 3001:3001
+      - 3002:3002
       - 9229:9229
     command: ["node", "--inspect=0.0.0.0:9229", "index.js"]

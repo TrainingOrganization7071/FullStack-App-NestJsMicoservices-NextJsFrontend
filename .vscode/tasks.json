@@ -6,12 +6,12 @@
 			"label": "docker-build",
 			"platform": "node",
 			"dockerBuild": {
-				"dockerfile": "${workspaceFolder}/services/auth/Dockerfile",
-				"context": "${workspaceFolder}/services/auth",
+				"dockerfile": "${workspaceFolder}/services/microone/Dockerfile",
+				"context": "${workspaceFolder}/services/microone",
 				"pull": true
 			},
 			"node": {
-				"package": "${workspaceFolder}/services/auth/package.json"
+				"package": "${workspaceFolder}/services/microone/package.json"
 			}
 		},
 		{
@@ -22,7 +22,7 @@
 			],
 			"platform": "node",
 			"node": {
-				"package": "${workspaceFolder}/services/auth/package.json"
+				"package": "${workspaceFolder}/services/microone/package.json"
 			}
 		},
 		{
@@ -38,7 +38,7 @@
 				}
 			},
 			"node": {
-				"package": "${workspaceFolder}/services/auth/package.json",
+				"package": "${workspaceFolder}/services/microone/package.json",
 				"enableDebugging": true
 			}
 		}

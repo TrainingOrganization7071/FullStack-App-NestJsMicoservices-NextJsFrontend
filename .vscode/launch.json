@@ -7,8 +7,8 @@
             "preLaunchTask": "docker-run: debug",
             "platform": "node",
             "node": {
-                "package": "${workspaceFolder}/services/auth/package.json",
-                "localRoot": "${workspaceFolder}/services/auth"
+                "package": "${workspaceFolder}/services/microone/package.json",
+                "localRoot": "${workspaceFolder}/services/microone"
             }
         }
     ]

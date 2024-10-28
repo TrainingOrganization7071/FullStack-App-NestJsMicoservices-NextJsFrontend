@@ -4,9 +4,9 @@ services:
   nesttypescriptstarter:
     image: nesttypescriptstarter
     build:
-      context: services/auth
+      context: services/microone
       dockerfile: ./Dockerfile
     environment:
       NODE_ENV: production
     ports:
-      - 3001:3001
+      - 3002:3002
