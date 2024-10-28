@@ -16,8 +16,33 @@ env:
 
 jobs:
   
-  Detect_Changes:
+  discover_services:    
+    name: Find out all the environments this customer have
     runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.list-environments.outputs.environments }}  
+    
+    steps:
+      - name: output all the environmnets in the infrastructure folder
+        id: list-environments
+        working-directory: infrastructure
+        run: |
+          cd services
+          directories=($(ls -d */))
+          directories=("${directories[@]%/}")
+          json_array=()
+          for dir in "${directories[@]}"; do
+            if [[ ! " ${excluded_directories[@]} " =~ " $dir " ]]; then
+              json_array+=("\"$dir\"")
+            fi
+          done
+          json_elements=$(IFS=,; echo "${json_array[*]}")
+          json_output="{ \"environments\": [$json_elements] }"
+          echo "environments=$json_output" | tee -a "$GITHUB_OUTPUT"
+
+
+  Detect_Changes:
+    runs-on: ubuntu-latest     
 
     steps:
       - name: Checkout repository
@@ -25,5 +50,10 @@ jobs:
         with:
           fetch-depth: 0  # Fetch full commit history, not a shallow clone
 
-          
 
+
+
+
+
+
+          
