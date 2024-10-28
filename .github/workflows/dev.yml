@@ -23,6 +23,11 @@ jobs:
       environments: ${{ steps.list-environments.outputs.environments }}  
     
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full commit history, not a shallow clone
+
       - name: output all the environmnets in the infrastructure folder
         id: list-environments
         working-directory: services
