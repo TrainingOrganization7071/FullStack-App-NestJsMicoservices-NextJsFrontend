@@ -25,9 +25,8 @@ jobs:
     steps:
       - name: output all the environmnets in the infrastructure folder
         id: list-environments
-        working-directory: infrastructure
+        working-directory: ./services
         run: |
-          cd services
           directories=($(ls -d */))
           directories=("${directories[@]%/}")
           json_array=()
