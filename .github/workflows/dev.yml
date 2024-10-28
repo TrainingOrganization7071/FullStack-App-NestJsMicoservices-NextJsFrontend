@@ -16,7 +16,7 @@ env:
 
 jobs:
   
-  discover_services:    
+  discover_services_by_path:    
     name: Find out all the environments this customer have
     runs-on: ubuntu-latest
     outputs:
