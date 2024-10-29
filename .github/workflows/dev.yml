@@ -49,7 +49,7 @@ jobs:
     name: Find out all the environments this customer have
     runs-on: ubuntu-latest
     outputs:
-      environments: ${{ steps.list-environments.outputs.environments }}  
+      environments: ${{ steps.load_services.outputs.services }}  
     
     steps:
       - name: Checkout repository
@@ -70,10 +70,7 @@ jobs:
 
   exploring_descovered_services:
     runs-on: ubuntu-latest
-    
-    env: 
-      FROM_JSON : ${{ needs.discover_services_from_json.outputs.environments }}
-  
+      
     if: always()
     needs: [discover_services_by_path, discover_services_from_json]
     strategy:
@@ -86,7 +83,7 @@ jobs:
 
     - name: List the name of the microcervies loaded from jsonfile
       run: |
-        echo ${{ env.FROM_JSON }}
+        echo ${{ needs.discover_services_from_json.outputs.environments }}
 
 
 
