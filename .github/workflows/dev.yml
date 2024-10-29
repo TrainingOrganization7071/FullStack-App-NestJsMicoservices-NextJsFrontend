@@ -43,7 +43,24 @@ jobs:
           json_elements=$(IFS=,; echo "${json_array[*]}")
           json_output="{ \"environments\": [$json_elements] }"
           echo "environments=$json_output" | tee -a "$GITHUB_OUTPUT"
+
+
+  discover_services_by_json:    
+    name: Find out all the environments this customer have
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.list-environments.outputs.environments }}  
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full commit history, not a shallow clone       
   
+
+  
+
+
   exploring_descovered_services:
     runs-on: ubuntu-latest
     if: always()
