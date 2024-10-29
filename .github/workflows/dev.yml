@@ -115,12 +115,6 @@ jobs:
         run: |
           echo ${{ needs.discover_services_from_json.outputs.changed_microservices }}
 
-      - name: Cat the pipeline
-        run: |
-          cat ./.github/workflows/dev.yml
-
-  
-
   Build:
     runs-on: ubuntu-latest     
     needs: [ exploring_descovered_services ]
