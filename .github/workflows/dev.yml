@@ -82,12 +82,16 @@ jobs:
             fi
           done
           # Format changed_microservices as a JSON array
-          if [ ${#changed_services[@]} -eq 0 ]; then
-            json_output="[]"
-          else
-            json_output=$(IFS=,; echo "[${changed_services[*]}]")
-          fi
-          echo "changed_microservices=$json_output" >> $GITHUB_OUTPUT
+          #if [ ${#changed_services[@]} -eq 0 ]; then
+          #  json_output="[]"
+          #else
+          #  json_output=$(IFS=,; echo "[${changed_services[*]}]")
+          #fi
+          
+          # Convert array to a comma-separated list
+          changed_services_output=$(IFS=,; echo "${changed_services[*]}")
+          echo $changed_services_output
+          echo "changed_microservices=[$changed_services_output]" >> $GITHUB_OUTPUT
 
       - name: Debug changed_microservices output
         run: |
@@ -125,7 +129,7 @@ jobs:
     
     strategy:
       matrix: 
-        changed_microservices: ${{ fromJson(needs.discover_services_from_json.outputs.changed_microservices) }}
+        changed_microservices: ${{ needs.discover_services_from_json.outputs.changed_microservices }}
 
     steps:
       - name: Checkout repository
