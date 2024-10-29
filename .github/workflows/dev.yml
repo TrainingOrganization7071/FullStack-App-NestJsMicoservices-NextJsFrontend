@@ -34,6 +34,7 @@ jobs:
         run: |
           directories=($(ls -d */))
           directories=("${directories[@]%/}")
+          echo $directories
           json_array=()
           for dir in "${directories[@]}"; do
             if [[ ! " ${excluded_directories[@]} " =~ " $dir " ]]; then
@@ -73,13 +74,17 @@ jobs:
         run: |
           services=$(jq -r '.microservices[] | .name' ./.github/workflows/microservices.json)
           echo "---> $services"
-      
+          json_array=()
           # Check each service for changes
-          #for service in $services; do
-          #  if git diff --name-only HEAD^ HEAD | grep -q "^$service/"; then
-          #    changed_services="$changed_services $service"
-          #  fi
-          #done    
+          for service in $services; do
+            if git diff --name-only HEAD^ HEAD | grep -q "*$service/*"; then
+              json_array+=("\"$service\"")
+            fi
+          done
+          json_elements=$(IFS=,; echo "${json_array[*]}")
+          json_output="{ \"environments\": [$json_elements] }"
+          echo "environments=$json_output" | tee -a "$GITHUB_OUTPUT"
+    
 
   exploring_descovered_services:
     runs-on: ubuntu-latest
