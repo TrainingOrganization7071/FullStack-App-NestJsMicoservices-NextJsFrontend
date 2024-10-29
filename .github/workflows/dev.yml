@@ -122,7 +122,7 @@ jobs:
     if: ${{ needs.discover_services_from_json.outputs.changed_microservices != '[]' }}
     strategy:
       matrix:
-        changed_microservices: ${{ needs.discover_services_from_json.outputs.changed_microservices }}
+        changed_microservices: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
