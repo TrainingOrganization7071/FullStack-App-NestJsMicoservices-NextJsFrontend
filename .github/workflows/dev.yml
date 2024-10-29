@@ -122,7 +122,15 @@ jobs:
         with:
           fetch-depth: 0  # Fetch full commit history, not a shallow clone
       
-      
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VENSION}}
+        
+      - name: Install dependencies
+        run: |
+          cd ./services/${{ matrix.changed_microservices }}
+          npm ci  
         
      
 
