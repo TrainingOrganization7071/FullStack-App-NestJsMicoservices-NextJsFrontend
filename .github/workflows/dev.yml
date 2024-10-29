@@ -89,7 +89,7 @@ jobs:
           else
             json_output=$(IFS=,; echo "[${changed_services[*]}]")
           fi
-          echo "changed_microservices=$json_output" >> $GITHUB_OUTPU
+          echo "changed_microservices=$json_output" >> $GITHUB_OUTPUT
           echo "---End---"
     
 
