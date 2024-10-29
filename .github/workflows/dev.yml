@@ -121,7 +121,8 @@ jobs:
     if: ${{ needs.discover_services_from_json.outputs.changed_microservices != '[]' }} && always()
     
     strategy:
-      matrix: ${{ fromJson(needs.discover_services_from_json.outputs.changed_microservices) }}
+      matrix: 
+        changed_microservices: ${{ fromJson(needs.discover_services_from_json.outputs.changed_microservices) }}
 
     steps:
       - name: Checkout repository
