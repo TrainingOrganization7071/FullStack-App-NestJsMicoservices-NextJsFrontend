@@ -137,7 +137,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd ./services/${{ matrix.changed_microservices }}
+          cd ./services/${{ matrix.environments }}
           npm ci
         
      
