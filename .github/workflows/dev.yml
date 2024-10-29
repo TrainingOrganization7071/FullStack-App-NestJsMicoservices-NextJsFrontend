@@ -84,11 +84,11 @@ jobs:
             fi
           done
           echo "---End---"
-          # Format changed_microservices as a JSON object with a key
+          # Set changed_microservices to '[]' if no changes were found
           if [ ${#changed_services[@]} -eq 0 ]; then
-            json_output='{ "changed_microservices": [] }'
+            json_output="[]"
           else
-            json_output="{ \"changed_microservices\": [$(IFS=,; echo "${changed_services[*]}")] }"
+            json_output=$(IFS=,; echo "[${changed_services[*]}]")
           fi
           echo "changed_microservices=$json_output" >> $GITHUB_OUTPUT
           
@@ -106,24 +106,28 @@ jobs:
       - name: List the name of the microcervie -> ${{ matrix.environments }}
         run: |
            echo ${{ matrix.environments }}
-      
+
       - name: List the name of the microcervies loaded from jsonfile
         run: |
           echo ${{ needs.discover_services_from_json.outputs.environments }}
-      
+
       - name: List the names of the changed microcervies
         run: |
           echo ${{ needs.discover_services_from_json.outputs.changed_microservices }}
+
+      - name: Cat the pipeline
+        run: |
+          cat ./.github/workflows/dev.yml
 
   
 
   Build:
     runs-on: ubuntu-latest     
     needs: [ exploring_descovered_services ]
-    if: ${{ needs.discover_services_from_json.outputs.changed_microservices != '[]' }}
+    if: ${{ needs.discover_services_from_json.outputs.changed_microservices != '[]' }} && always()
     
     strategy:
-      matrix: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
+      matrix: ${{ fromJson(needs.discover_services_from_json.outputs.changed_microservices) }}
 
     steps:
       - name: Checkout repository
@@ -138,7 +142,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd ./services/${{ matrix.environments }}
+          cd ./services/${{ matrix.changed_microservices }}
           npm ci
         
      
