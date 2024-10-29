@@ -12,6 +12,7 @@ on:
   
 env:
   RESOURCE_GROUP: 'minimal_infra_auth'
+  NODE_VENSION: '20.x'
 
 
 jobs:
@@ -50,7 +51,8 @@ jobs:
     name: Find out all the microservies from json file
     runs-on: ubuntu-latest
     outputs:
-      environments: ${{ steps.load_services.outputs.services }}  
+      environments: ${{ steps.load_services.outputs.services }}
+      changed_microservices: ${{ steps.detect_changes.outputs.changed_microservices }}
     
     steps:
       - name: Checkout repository
@@ -65,7 +67,6 @@ jobs:
           services=$(jq -r '.microservices[] | .name' ./.github/workflows/microservices.json | paste -sd "," -)
           # Output values as single-line strings
           echo "Services: $services"
-
           echo "services=$services" >> $GITHUB_OUTPUT
       
       # Load microservices names from JSON -> return array
@@ -84,7 +85,7 @@ jobs:
           done
           json_output=$(IFS=,; echo "[${changed_services[*]}]")*
           echo $json_output
-          echo "environments=$json_output" >> $GITHUB_OUTPUT
+          echo "changed_microservices=$json_output" >> $GITHUB_OUTPUT
           echo "---End---"
     
 
@@ -105,19 +106,25 @@ jobs:
       run: |
         echo ${{ needs.discover_services_from_json.outputs.environments }}
 
+    - name: List the names of the changed microcervies
+      run: |
+        echo ${{ needs.discover_services_from_json.outputs.changed_microservices }}
 
 
-
-  Detect_Changes:
+  Build:
     runs-on: ubuntu-latest     
     needs: [ exploring_descovered_services ]
+    strategy:
+      matrix: ${{ fromJson(needs.discover_services_from_json.outputs.changed_microservices) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch full commit history, not a shallow clone
-
-
+      
+      
+        
+     
 
 
 
