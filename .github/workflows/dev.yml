@@ -46,6 +46,10 @@ jobs:
           json_output="{ \"environments\": [$json_elements] }"
           echo "environments=$json_output" | tee -a "$GITHUB_OUTPUT"
 
+      - name: Debug Changed Microservices output
+        run: |
+          echo "${{ steps.list-environments.outputs.environments }}"
+
 
   Build:
     runs-on: ubuntu-latest     
