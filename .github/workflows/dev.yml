@@ -83,20 +83,21 @@ jobs:
               changed_services+=("\"$service\"")
             fi
           done
-          # Set changed_microservices to '[]' if no changes were found
+          echo "---End---"
+          # Format changed_microservices as a JSON object with a key
           if [ ${#changed_services[@]} -eq 0 ]; then
-            json_output="[]"
+            json_output='{ "changed_microservices": [] }'
           else
-            json_output=$(IFS=,; echo "[${changed_services[*]}]")
+            json_output="{ \"changed_microservices\": [$(IFS=,; echo "${changed_services[*]}")] }"
           fi
           echo "changed_microservices=$json_output" >> $GITHUB_OUTPUT
-          echo "---End---"
+          
     
 
   exploring_descovered_services:
     runs-on: ubuntu-latest
       
-    #if: always()
+    if: always()
     needs: [discover_services_by_path, discover_services_from_json]
     strategy:
       matrix: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
