@@ -77,7 +77,7 @@ jobs:
           changed_services=()
           echo "---Start---"
           for service in $services; do
-            echo "---In Service Check---"
+            echo "---In $service Check---"
             if git diff --name-only HEAD^ HEAD | grep -q "^services/$service/"; then
               changed_services+=("\"$service\"")
             fi
