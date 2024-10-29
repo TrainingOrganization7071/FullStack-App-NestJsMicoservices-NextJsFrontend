@@ -103,17 +103,17 @@ jobs:
       matrix: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
     
     steps:
-    - name: List the name of the microcervie -> ${{ matrix.environments }}
-      run: |
-         echo ${{ matrix.environments }}
-
-    - name: List the name of the microcervies loaded from jsonfile
-      run: |
-        echo ${{ needs.discover_services_from_json.outputs.environments }}
-
-    - name: List the names of the changed microcervies
-      run: |
-        echo ${{ needs.discover_services_from_json.outputs.changed_microservices }}
+      - name: List the name of the microcervie -> ${{ matrix.environments }}
+        run: |
+           echo ${{ matrix.environments }}
+      
+      - name: List the name of the microcervies loaded from jsonfile
+        run: |
+          echo ${{ needs.discover_services_from_json.outputs.environments }}
+      
+      - name: List the names of the changed microcervies
+        run: |
+          echo ${{ needs.discover_services_from_json.outputs.changed_microservices }}
 
   
 
