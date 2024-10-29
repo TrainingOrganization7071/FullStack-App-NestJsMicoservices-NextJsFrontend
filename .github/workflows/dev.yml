@@ -74,16 +74,14 @@ jobs:
         run: |
           services=$(jq -r '.microservices[] | .name' ./.github/workflows/microservices.json)
           echo "---> $services"
-          json_array=()
-          # Check each service for changes
+          changed_services=()
           for service in $services; do
-            if git diff --name-only HEAD^ HEAD | grep -q "*$service/*"; then
-              json_array+=("\"$service\"")
+            if git diff --name-only HEAD^ HEAD | grep -q "^services/$service/"; then
+              changed_services+=("\"$service\"")
             fi
           done
-          json_elements=$(IFS=,; echo "${json_array[*]}")
-          json_output="{ \"environments\": [$json_elements] }"
-          echo "environments=$json_output" | tee -a "$GITHUB_OUTPUT"
+          json_output=$(IFS=,; echo "[${changed_services[*]}]")
+          echo "environments=$json_output" >> $GITHUB_OUTPUT
     
 
   exploring_descovered_services:
