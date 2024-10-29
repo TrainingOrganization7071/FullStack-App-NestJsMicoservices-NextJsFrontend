@@ -83,9 +83,13 @@ jobs:
               changed_services+=("\"$service\"")
             fi
           done
-          json_output=$(IFS=,; echo "[${changed_services[*]}]")
-          echo $json_output
-          echo "changed_microservices=$json_output" >> $GITHUB_OUTPUT
+          # Set changed_microservices to '[]' if no changes were found
+          if [ ${#changed_services[@]} -eq 0 ]; then
+            json_output="[]"
+          else
+            json_output=$(IFS=,; echo "[${changed_services[*]}]")
+          fi
+          echo "changed_microservices=$json_output" >> $GITHUB_OUTPU
           echo "---End---"
     
 
