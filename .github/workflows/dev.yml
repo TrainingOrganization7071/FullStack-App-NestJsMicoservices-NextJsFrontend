@@ -110,27 +110,30 @@ jobs:
       run: |
         echo ${{ needs.discover_services_from_json.outputs.changed_microservices }}
 
+  
 
   Build:
     runs-on: ubuntu-latest     
     needs: [ exploring_descovered_services ]
+    if: ${{ needs.discover_services_from_json.outputs.changed_microservices != '[]' }}
     strategy:
-      matrix: ${{ fromJson(needs.discover_services_from_json.outputs.changed_microservices) }}
+      matrix:
+        changed_microservices: ${{ fromJson(needs.discover_services_from_json.outputs.changed_microservices) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full commit history, not a shallow clone
+          fetch-depth: 0
       
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VENSION}}
-        
+          node-version: ${{ env.NODE_VERSION }}
+      
       - name: Install dependencies
         run: |
           cd ./services/${{ matrix.changed_microservices }}
-          npm ci  
+          npm ci
         
      
 
