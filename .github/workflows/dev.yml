@@ -82,7 +82,8 @@ jobs:
               changed_services+=("\"$service\"")
             fi
           done
-          json_output=$(IFS=,; echo "[${changed_services[*]}]")
+          json_output=$(IFS=,; echo "[${changed_services[*]}]")*
+          echo $json_output
           echo "environments=$json_output" >> $GITHUB_OUTPUT
           echo "---End---"
     
