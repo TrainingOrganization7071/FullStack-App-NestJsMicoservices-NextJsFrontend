@@ -2,7 +2,8 @@ name: CI/CD Microservices Pipeline
 
 on:
   push:
-    #paths: ./services
+    paths: 
+      - ./services
     branches:
       - dev
   pull_request:
