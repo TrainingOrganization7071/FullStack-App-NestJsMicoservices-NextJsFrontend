@@ -2,8 +2,8 @@ name: CI/CD Microservices Pipeline
 
 on:
   push:
-    #paths: 
-    #  - "services/**"
+    paths: 
+      - "services/**"
     branches:
       - dev
   pull_request:
@@ -72,23 +72,23 @@ jobs:
           cd ./services/${{ matrix.environments }}
           npm ci
 
-      - name: Run Build
-        run: |
-          cd ./services/${{ matrix.service }}
-          npm run build --if-present
+      #- name: Run Build
+      #  run: |
+      #    cd ./services/${{ matrix.environments }}
+      #    npm run build --if-present
       
       - name: Run Lint
         run: |
-          cd ./services/${{ matrix.service }}
+          cd ./services/${{ matrix.environments }}
           npm run lint --if-present
       
       # Upload the build artifacts
-      - name: Upload build artifact for ${{ matrix.service }}
+      - name: Upload build artifact for ${{ matrix.environments }}
         if: env.changes == 'true' 
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.service }}-build
-          path: ./services/${{ matrix.service }}
+          name: ${{ matrix.environments }}-build
+          path: ./services/${{ matrix.environments }}
       
 
 
