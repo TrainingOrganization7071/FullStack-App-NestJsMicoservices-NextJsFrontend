@@ -10,11 +10,9 @@ on:
       - dev
   workflow_dispatch:
   
-  
 env:
   RESOURCE_GROUP: 'minimal_infra_auth'
   NODE_VENSION: '20.x'
-
 
 jobs:
   
@@ -48,7 +46,6 @@ jobs:
       - name: Debug Changed Microservices output
         run: |
           echo "Changed Microservices: ${{ steps.list-environments.outputs.environments }}"
-
 
   Build:
     runs-on: ubuntu-latest     
