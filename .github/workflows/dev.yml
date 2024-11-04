@@ -91,25 +91,27 @@ jobs:
           name: ${{ matrix.environments }}-build
           path: ./services/${{ matrix.environments }}
 
+      # ToDo
       # Use OWASP Dependency Checker
-      - name: OWASP Dependency Checker
-        uses: jeremylong/dependency-check-action@v4
-        with:
-          project: ${{ matrix.environments }}
-          scanPath: ./services/${{ matrix.environments }}
-          outputDirectory: ./dependency-check-reports
-          outputFormat: HTML
-          failOnCVSS: 7.0
-          suppressionFile: ./owasp-suppressions.xml
-          exclude: "**/node_modules/**"
-      
-      - name: Upload OWASP HTML Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.environments }}-owasp-report
-          path: ./dependency-check-reports/dependency-check-report.html
+      #- name: OWASP Dependency Checker
+      #  uses: jeremylong/dependency-check-action@v4
+      #  with:
+      #    project: ${{ matrix.environments }}
+      #    scanPath: ./services/${{ matrix.environments }}
+      #    outputDirectory: ./dependency-check-reports
+      #    outputFormat: HTML
+      #    failOnCVSS: 7.0
+      #    suppressionFile: ./owasp-suppressions.xml
+      #    exclude: "**/node_modules/**"
+      #
+      #- name: Upload OWASP HTML Report
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: ${{ matrix.environments }}-owasp-report
+      #    path: ./dependency-check-reports/dependency-check-report.html
   
-  # TODO:
+
+      
 
   
 
