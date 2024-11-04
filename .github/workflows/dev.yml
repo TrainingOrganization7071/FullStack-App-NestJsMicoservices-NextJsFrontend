@@ -42,6 +42,7 @@ jobs:
             fi
           done
           json_output="[$(IFS=,; echo "${json_array[*]}")]"
+          echo "--> $json_output"
           echo "environments=$json_output" >> $GITHUB_OUTPUT
 
       - name: Debug Changed Microservices output
@@ -107,9 +108,10 @@ jobs:
         with:
           name: ${{ matrix.environments }}-owasp-report
           path: ./dependency-check-reports/dependency-check-report.html
+  
+  # TODO:
 
-
-
+  
 
 
 
