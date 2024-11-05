@@ -1,24 +1,26 @@
 name: CI/CD Pipeline For FrontEnd NextJs -- Web APP
 
 on:
-  #push:
-  #  paths: 
-  #    - "frontend_app/**"
-  #  branches:
-  #    - dev
-  #pull_request:
-  #  branches:
-  #    - dev
+  push:
+    paths: 
+      - "frontend_app/**"
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
   workflow_dispatch:
 
 env: 
   DOCKER_IMAGE_NAME : 'appfrontend-azure'
   DOCKER_IMAGE_TAG: 'latest'
   AZURE_RESOURCE_GROUP: 'minimal_infra_auth'
-  AZURE_WEBAPP_NAME: 'webapp-frontend-pzshbqemosahmyhk'
-  AZURE_WEBAPP_PACKAGE_PATH: './build'
+  AZURE_WEBAPP_NAME: 'webapp-frontend-pxqfxoznspbdamvn'
+  AZURE_WEBAPP_PACKAGE_PATH: './frontend_app/build'
 
 jobs:
+
+  
   # Build and Test 
   Build_Test:
     runs-on: ubuntu-latest
@@ -39,16 +41,21 @@ jobs:
           node-version: ${{ matrix.node-version }}
         
       - name: Install dependencies
-        run: npm ci
+        run: |
+          cd ./frontend 
+          npm ci
 
       - name: Run Build
-        run: npm run build --if-present
+        run: |
+          cd ./frontend 
+          npm run build --if-present
         
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
           name: node-app
           path: ./build
+
 
   Deploy_To_DockerHub:
     runs-on: ubuntu-latest
@@ -75,7 +82,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./
+          context: ./frontend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME}}:${{ env.DOCKER_IMAGE_TAG }}
 
@@ -97,12 +104,6 @@ jobs:
         with:
             fetch-depth: 0
       
-      # Error to download the artifact
-      #- name: Download artifact from build job
-      #  uses: actions/download-artifact@v3
-      #  with:
-      #    name: node-app
-      
       - name: Install dependencies
         run: npm ci
     
@@ -117,4 +118,18 @@ jobs:
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
               
+              
          
+
+
+
+
+
+
+
+
+
+
+
+
+
