@@ -67,7 +67,7 @@ jobs:
       matrix:
         environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
     outputs:
-      service_name: ${{ matrix.environments}}
+      microservice_name: ${{ matrix.environments}}
 
     steps:
       # Step 1: Checkout the repository
@@ -110,8 +110,9 @@ jobs:
     needs: [lint]
     strategy:
       matrix:
-        environments: ${{ needs.lint.outputs.service_name }}
-    
+        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
+    env:
+      microservice_name: ${{ needs.lint.outputs.microservice_name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -133,19 +134,19 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd ./services/${{ matrix.environments }}
+          cd ./services/${{ env.microservice_name }}
           npm ci
 
       - name: Run Build
         run: |
-          cd ./services/${{ matrix.environments }}
+          cd ./services/${{ env.microservice_name }}
           npm run build --if-present
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.environments }}-build
-          path: ./services/${{ matrix.environments }}/dist
+          name: ${{ env.microservice_name }}-build
+          path: ./services/${{ env.microservice_name }}/dist
 
   # Docker Build and Push Job to containerize and deploy microservices
   docker_build_push:
