@@ -42,19 +42,19 @@ jobs:
         
       - name: Install dependencies
         run: |
-          cd ./frontend 
+          cd ./frontend_app 
           npm ci
 
       - name: Run Build
         run: |
-          cd ./frontend 
+          cd ./frontend_app
           npm run build --if-present
         
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: ./build
+          path: ./frontend_app/build
 
 
   Deploy_To_DockerHub:
@@ -82,7 +82,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend
+          context: ./frontend_app
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME}}:${{ env.DOCKER_IMAGE_TAG }}
 
@@ -105,10 +105,14 @@ jobs:
             fetch-depth: 0
       
       - name: Install dependencies
-        run: npm ci
+        run: |
+          cd ./frontend_app
+          npm ci
     
       - name: Run Build
-        run: npm run build --if-present
+        run: |
+          cd ./frontend_app
+          npm run build --if-present
 
       - name: 'Deploy to Azure WebApp'
         id: deploy-to-webapp
