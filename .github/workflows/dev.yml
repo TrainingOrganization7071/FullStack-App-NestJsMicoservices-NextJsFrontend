@@ -1,5 +1,9 @@
 name: CI/CD Microservices Pipeline
 
+# Define events that trigger this workflow: 
+# - A push to the "dev" branch, targeting changes in the "services" folder.
+# - Pull requests to the "dev" branch.
+# - Manual workflow_dispatch trigger.
 on:
   push:
     paths: 
@@ -10,13 +14,14 @@ on:
     branches:
       - dev
   workflow_dispatch:
-  
+
+# Set environment variables used across multiple jobs
 env:
   RESOURCE_GROUP: 'minimal_infra_auth'
   NODE_VENSION: '20.x'
 
 jobs:
-  
+  # Job to detect changed microservices in the "services" directory
   discover_services_by_path:    
     name: Find out all the microservices from path directory
     runs-on: ubuntu-latest
@@ -24,11 +29,13 @@ jobs:
       environments: ${{ steps.list-environments.outputs.environments }}
     
     steps:
+      # Step 1: Checkout the repository with a shallow clone for faster performance
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+      
+      # Step 2: Identify directories in "services" with changes in the latest commit
       - name: Output all the environments in the infrastructure folder
         id: list-environments
         working-directory: services
@@ -44,13 +51,16 @@ jobs:
           json_output="[$(IFS=,; echo "${json_array[*]}")]"
           echo "--> $json_output"
           echo "environments=$json_output" >> $GITHUB_OUTPUT
-
+          
+      # Step 3: Display detected changed microservices for debugging and verification
       - name: Debug Changed Microservices output
         run: |
           echo "Changed Microservices: ${{ steps.list-environments.outputs.environments }}"
 
-  Build:
-    runs-on: ubuntu-latest     
+  # Lint Job to enforce code quality standards
+  lint:
+    name: Lint Microservices
+    runs-on: ubuntu-latest
     needs: [discover_services_by_path]
     if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
     strategy:
@@ -58,66 +68,155 @@ jobs:
         environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      
-      - name: Use Node.js
+          fetch-depth: 1
+
+      # Step 2: Set up Node.js environment with specified version
+      - name: Set Up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      
-      - name: Install dependencies
+
+      # Step 3: Cache Node.js dependencies to improve pipeline speed
+      - name: Cache Node.js Modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+  
+      # Step 4: Install necessary dependencies in the microservice directory
+      - name: Install Dependencies
         run: |
           cd ./services/${{ matrix.environments }}
           npm ci
 
-      #- name: Run Build
-      #  run: |
-      #    cd ./services/${{ matrix.environments }}
-      #    npm run build --if-present
-      
+      # Step 5: Run linting to enforce code quality and consistency
       - name: Run Lint
         run: |
           cd ./services/${{ matrix.environments }}
           npm run lint --if-present
-      
-      # Upload the build artifacts
-      - name: Upload build artifact for ${{ matrix.environments }}
-        if: env.changes == 'true' 
+  
+  # Build Job to compile the microservices
+  build:
+    name: Build Microservices
+    runs-on: ubuntu-latest
+    needs: [lint]
+    if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
+    strategy:
+      matrix:
+        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # Step 2: Set up Node.js environment
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Step 3: Cache Node.js dependencies to reduce build time
+      - name: Cache Node.js Modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 4: Install dependencies
+      - name: Install Dependencies
+        run: |
+          cd ./services/${{ matrix.environments }}
+          npm ci
+
+      # Step 5: Build the microservice (compiles TypeScript to JavaScript)
+      - name: Run Build
+        run: |
+          cd ./services/${{ matrix.environments }}
+          npm run build --if-present
+
+      # Step 6: Upload build artifacts for later stages or deployment
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.environments }}-build
-          path: ./services/${{ matrix.environments }}
+          path: ./services/${{ matrix.environments }}/dist
 
-      # ToDo
-      # Use OWASP Dependency Checker
-      #- name: OWASP Dependency Checker
-      #  uses: jeremylong/dependency-check-action@v4
-      #  with:
-      #    project: ${{ matrix.environments }}
-      #    scanPath: ./services/${{ matrix.environments }}
-      #    outputDirectory: ./dependency-check-reports
-      #    outputFormat: HTML
-      #    failOnCVSS: 7.0
-      #    suppressionFile: ./owasp-suppressions.xml
-      #    exclude: "**/node_modules/**"
-      #
-      #- name: Upload OWASP HTML Report
-      #  uses: actions/upload-artifact@v3
-      #  with:
-      #    name: ${{ matrix.environments }}-owasp-report
-      #    path: ./dependency-check-reports/dependency-check-report.html
-  
+  # Security Check Job for dependencies using OWASP Dependency Check
+  dependency_check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    needs: [discover_services_by_path]
+    if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
+    strategy:
+      matrix:
+        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
 
-      
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-  
+      # Step 2: Run OWASP Dependency Checker to identify vulnerabilities
+      - name: OWASP Dependency Checker
+        uses: jeremylong/dependency-check-action@v4
+        with:
+          project: ${{ matrix.environments }}
+          scanPath: ./services/${{ matrix.environments }}
+          outputDirectory: ./dependency-check-reports
+          outputFormat: HTML
+          failOnCVSS: 7.0  # Fail if vulnerabilities with CVSS >= 7.0 are found
+          suppressionFile: ./owasp-suppressions.xml
+          exclude: "**/node_modules/**"
 
+      # Step 3: Upload the OWASP report as an artifact for review
+      - name: Upload OWASP HTML Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.environments }}-owasp-report
+          path: ./dependency-check-reports/dependency-check-report.html
 
+  # Docker Build and Push Job to containerize and deploy microservices
+  docker_build_push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [dependency_check]
+    if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
+    strategy:
+      matrix:
+        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
 
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
+      # Step 2: Authenticate to DockerHub for pushing images
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 3: Build and push Docker image for each microservice
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ matrix.environments }}:latest
 
 
 
