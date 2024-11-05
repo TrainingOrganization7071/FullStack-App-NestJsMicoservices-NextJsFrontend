@@ -193,7 +193,7 @@ jobs:
   docker_build_push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
-    needs: [dependency_check]
+    needs: [build]
     if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
     strategy:
       matrix:
