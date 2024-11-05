@@ -21,6 +21,7 @@ env:
   NODE_VENSION: "20.x"
 
 jobs:
+
   # Job to detect changed microservices in the "services" directory
   discover_services_by_path:
     name: Find out all the microservices from path directory
@@ -56,6 +57,7 @@ jobs:
       - name: Debug Changed Microservices output
         run: |
           echo "Changed Microservices: ${{ steps.list-environments.outputs.environments }}"
+
 
   # Lint Job to enforce code quality standards
   lint:
@@ -108,6 +110,7 @@ jobs:
           cd ./services/${{ matrix.environments }}
           npm run lint --if-present
 
+
   # Build Job to compile the microservices
   build:
     name: Build Microservices
@@ -154,6 +157,7 @@ jobs:
           name: ${{ matrix.environments }}-build
           path: ./services/${{ matrix.environments }}/dist
 
+
   # Docker Build and Push Job to containerize and deploy microservices
   docker_build_push:
     name: Build and Push Docker Images
@@ -181,7 +185,6 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ matrix.environments }}:latest
 
 
-
   #Deploy All Microservice docker images to ACR
   deploy_To_ACR:
     name: 'Build and Push to ACR'
@@ -190,6 +193,8 @@ jobs:
     strategy:
       matrix:
         environments: ${{ fromJson(needs.build.outputs.environments || '[]') }}
+    env:
+      ACR_NAME: "containerRegistry1alnqmasz"
 
     defaults:
       run:
@@ -218,12 +223,10 @@ jobs:
           docker build -t ${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
 
       - name: Tag Docker Image for ACR
-        if: env.changes == 'true'
         run: |
           docker tag ${{ matrix.environments }}:latest  ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
 
       - name: Push Docker Image to ACR
-        if: env.changes == 'true'
         run: |
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
 
