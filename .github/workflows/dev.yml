@@ -1,12 +1,12 @@
 name: CI/CD Microservices Pipeline
 
-# Define events that trigger this workflow: 
+# Define events that trigger this workflow:
 # - A push to the "dev" branch, targeting changes in the "services" folder.
 # - Pull requests to the "dev" branch.
 # - Manual workflow_dispatch trigger.
 on:
   push:
-    paths: 
+    paths:
       - "services/**"
     branches:
       - dev
@@ -17,24 +17,24 @@ on:
 
 # Set environment variables used across multiple jobs
 env:
-  RESOURCE_GROUP: 'minimal_infra_auth'
-  NODE_VENSION: '20.x'
+  RESOURCE_GROUP: "minimal_infra_auth"
+  NODE_VENSION: "20.x"
 
 jobs:
   # Job to detect changed microservices in the "services" directory
-  discover_services_by_path:    
+  discover_services_by_path:
     name: Find out all the microservices from path directory
     runs-on: ubuntu-latest
     outputs:
       environments: ${{ steps.list-environments.outputs.environments }}
-    
+
     steps:
       # Step 1: Checkout the repository with a shallow clone for faster performance
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       # Step 2: Identify directories in "services" with changes in the latest commit
       - name: Output all the environments in the infrastructure folder
         id: list-environments
@@ -67,9 +67,14 @@ jobs:
       matrix:
         environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
     outputs:
-      microservice_name: ${{ matrix.environments}}
+      environments: ${{ needs.discover_services_by_path.outputs.environments }}
 
     steps:
+      # Run Echo command
+      - name: Debug Environment
+        run: |
+          echo "Changed Microservices: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}"
+
       # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -90,7 +95,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-  
+
       # Step 4: Install necessary dependencies in the microservice directory
       - name: Install Dependencies
         run: |
@@ -102,7 +107,7 @@ jobs:
         run: |
           cd ./services/${{ matrix.environments }}
           npm run lint --if-present
-  
+
   # Build Job to compile the microservices
   build:
     name: Build Microservices
@@ -110,9 +115,8 @@ jobs:
     needs: [lint]
     strategy:
       matrix:
-        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
-    env:
-      microservice_name: ${{ needs.lint.outputs.microservice_name }}
+        environments: ${{ fromJson(needs.lint.outputs.environments || '[]') }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -155,7 +159,7 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
+        environments: ${{ fromJson(needs.lint.outputs.environments || '[]') }}
 
     steps:
       - name: Checkout repository
@@ -173,7 +177,6 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ matrix.environments }}:latest
-
 
 # Deploy All Microservice docker images to ACR
 #  Deploy_To_ACR:
@@ -194,7 +197,7 @@ jobs:
 #        uses: actions/checkout@v4
 #        with:
 #          fetch-depth: 0  # Fetch full commit history, not a shallow clone
-#        
+#
 #      - name: Check for changes in microservice
 #        run: |
 #          if git diff --name-only HEAD^ HEAD | grep -q "^${{ matrix.service }}/"; then
@@ -204,7 +207,7 @@ jobs:
 #          fi
 #
 #      - name: Azure ACR [Docker Rejistry] Login
-#        if: env.changes == 'true' 
+#        if: env.changes == 'true'
 #        uses: azure/docker-login@v1
 #        with:
 #          login-server: ${{ env.ACR_NAME }}.azurecr.io
@@ -213,84 +216,41 @@ jobs:
 #
 #      # Display the content of the Dockerfile
 #      - name: Display Dockerfile content
-#        if: env.changes == 'true' 
+#        if: env.changes == 'true'
 #        run: |
 #           cat ./${{ matrix.service }}/Dockerfile
 #
 #      - name: Build Docker Image
-#        if: env.changes == 'true' 
+#        if: env.changes == 'true'
 #        run: |
 #          docker build -t ${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }} ./${{ matrix.service }}
-#        
+#
 #      - name: Tag Docker Image for ACR
-#        if: env.changes == 'true' 
+#        if: env.changes == 'true'
 #        run: |
 #          docker tag ${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }}  ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }}
 #
 #      - name: Push Docker Image to ACR
-#        if: env.changes == 'true' 
+#        if: env.changes == 'true'
 #        run: |
-#          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }}         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }}
 
 #########################################################################################
 #########################################################################################
 #########################################################################################
-#  discover_services_from_json:    
+#  discover_services_from_json:
 #    name: Find out all the microservies from json file
 #    runs-on: ubuntu-latest
 #    outputs:
 #      environments: ${{ steps.load_services.outputs.services }}
 #      changed_microservices: ${{ steps.detect_changes.outputs.changed_microservices }}
-#    
+#
 #    steps:
 #      - name: Checkout repository
 #        uses: actions/checkout@v4
 #        with:
 #          fetch-depth: 0  # Fetch full commit history, not a shallow clone
-#          
+#
 #      # Load microservices names from JSON
 #      - name: Load microservices from JSON
 #        id: load_services
@@ -299,7 +259,7 @@ jobs:
 #          # Output values as single-line strings
 #          echo "Services: $services"
 #          echo "services=$services" >> $GITHUB_OUTPUT
-#      
+#
 #      # Load microservices names from JSON -> return array
 #      # Detect changed microservices
 #      - name: Detect changed microservices
@@ -323,14 +283,14 @@ jobs:
 #      - name: Debug changed_microservices output
 #        run: |
 #          echo "Changed microservices: ${{ steps.detect_changes.outputs.changed_microservices }}"
-#          
+#
 #  Build:
-#    runs-on: ubuntu-latest     
+#    runs-on: ubuntu-latest
 #    needs: [ exploring_descovered_services ]
-#    if: ${{ needs.discover_services_from_json.outputs.changed_microservices != '[]' }} 
-#    
+#    if: ${{ needs.discover_services_from_json.outputs.changed_microservices != '[]' }}
+#
 #    strategy:
-#      matrix: 
+#      matrix:
 #        changed_microservices: ${{ needs.discover_services_from_json.outputs.changed_microservices }}
 #
 #    steps:
@@ -338,23 +298,17 @@ jobs:
 #        uses: actions/checkout@v4
 #        with:
 #          fetch-depth: 0
-#      
+#
 #      - name: Use Node.js
 #        uses: actions/setup-node@v4
 #        with:
 #          node-version: ${{ env.NODE_VERSION }}
-#      
+#
 #      - name: Install dependencies
 #        run: |
 #          cd ./services/${{ matrix.changed_microservices }}
 #          npm ci
 #########################################################################################
 #########################################################################################
-#########################################################################################      
-     
+#########################################################################################
 
-
-
-
-
- 
