@@ -216,8 +216,9 @@ jobs:
       # Display the content of the Dockerfile
       - name: Display Dockerfile content
         run: |
-           cat ./${{ matrix.service }}/Dockerfile
-
+           cat ./${{ matrix.environments }}/Dockerfile
+           
+      # Build the Docker Image
       - name: Build Docker Image
         run: |
           docker build -t ${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
