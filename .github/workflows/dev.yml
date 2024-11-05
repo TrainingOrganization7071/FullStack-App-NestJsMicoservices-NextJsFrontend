@@ -169,25 +169,26 @@ jobs:
         with:
           fetch-depth: 1
 
-      # Step 2: Run OWASP Dependency Checker to identify vulnerabilities
-      - name: OWASP Dependency Checker
-        uses: jeremylong/dependency-check-action@v4
-        with:
-          project: ${{ matrix.environments }}
-          scanPath: ./services/${{ matrix.environments }}
-          outputDirectory: ./dependency-check-reports
-          outputFormat: HTML
-          failOnCVSS: 7.0  # Fail if vulnerabilities with CVSS >= 7.0 are found
-          suppressionFile: ./owasp-suppressions.xml
-          exclude: "**/node_modules/**"
+      # Step 2: Run OWASP Dependency Checker using Docker
+      - name: OWASP Dependency Check
+        run: |
+          docker run --rm \
+            -v $(pwd)/services/${{ matrix.environments }}:/src \
+            -v $(pwd)/dependency-check-reports:/report \
+            owasp/dependency-check \
+            --scan /src \
+            --format HTML \
+            --out /report/dependency-check-report.html \
+            --failOnCVSS 7.0
 
-      # Step 3: Upload the OWASP report as an artifact for review
+      # Step 3: Upload the OWASP HTML report as an artifact
       - name: Upload OWASP HTML Report
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.environments }}-owasp-report
           path: ./dependency-check-reports/dependency-check-report.html
 
+          
   # Docker Build and Push Job to containerize and deploy microservices
   docker_build_push:
     name: Build and Push Docker Images
@@ -199,20 +200,17 @@ jobs:
         environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      # Step 2: Authenticate to DockerHub for pushing images
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 3: Build and push Docker image for each microservice
       - name: Build and Push Docker Image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
