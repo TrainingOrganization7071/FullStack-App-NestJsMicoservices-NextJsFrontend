@@ -6,8 +6,8 @@ name: CI/CD Microservices Pipeline
 # - Manual workflow_dispatch trigger.
 on:
   push:
-    paths:
-      - "services/**"
+    #paths:
+    #  - "services/**"
     branches:
       - dev
   pull_request:
@@ -182,62 +182,58 @@ jobs:
 
 
 
-# Deploy All Microservice docker images to ACR
-#  Deploy_To_ACR:
-#    name: 'Build and Push to ACR'
-#    runs-on: ubuntu-latest
-#    needs: dependency_check
-#    if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
-#    strategy:
-#      matrix:
-#        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
-#
-#    defaults:
-#      run:
-#        shell: bash
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 0  # Fetch full commit history, not a shallow clone
-#
-#      - name: Check for changes in microservice
-#        run: |
-#          if git diff --name-only HEAD^ HEAD | grep -q "^${{ matrix.service }}/"; then
-#          echo "changes=true" >> $GITHUB_ENV
-#          else
-#            echo "changes=false" >> $GITHUB_ENV
-#          fi
-#
-#      - name: Azure ACR [Docker Rejistry] Login
-#        if: env.changes == 'true'
-#        uses: azure/docker-login@v1
-#        with:
-#          login-server: ${{ env.ACR_NAME }}.azurecr.io
-#          username: ${{ secrets.ACR_USERNAME }}
-#          password: ${{ secrets.ACR_PASSWORD }}
-#
-#      # Display the content of the Dockerfile
-#      - name: Display Dockerfile content
-#        if: env.changes == 'true'
-#        run: |
-#           cat ./${{ matrix.service }}/Dockerfile
-#
-#      - name: Build Docker Image
-#        if: env.changes == 'true'
-#        run: |
-#          docker build -t ${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }} ./${{ matrix.service }}
-#
-#      - name: Tag Docker Image for ACR
-#        if: env.changes == 'true'
-#        run: |
-#          docker tag ${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }}  ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }}
-#
-#      - name: Push Docker Image to ACR
-#        if: env.changes == 'true'
-#        run: |
-#          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.docker_image_name }}-microservice:${{ env.DOCKER_IMAGE_TAG }}
+  #Deploy All Microservice docker images to ACR
+  deploy_To_ACR:
+    name: 'Build and Push to ACR'
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+      matrix:
+        environments: ${{ fromJson(needs.build.outputs.environments || '[]') }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full commit history, not a shallow clone
+
+      - name: Azure ACR [Docker Rejistry] Login
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # Display the content of the Dockerfile
+      - name: Display Dockerfile content
+        run: |
+           cat ./${{ matrix.service }}/Dockerfile
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
+
+      - name: Tag Docker Image for ACR
+        if: env.changes == 'true'
+        run: |
+          docker tag ${{ matrix.environments }}:latest  ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
+
+      - name: Push Docker Image to ACR
+        if: env.changes == 'true'
+        run: |
+          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
+
+
+
+
+
+
+
+
 
 #########################################################################################
 #########################################################################################
