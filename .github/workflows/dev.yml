@@ -193,6 +193,8 @@ jobs:
     strategy:
       matrix:
         environments: ${{ fromJson(needs.build.outputs.environments || '[]') }}
+    outputs:
+      environments: ${{ needs.build.outputs.environments }}
     env:
       ACR_NAME: "containerRegistry1alnqmasz"
 
