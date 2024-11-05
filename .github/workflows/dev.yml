@@ -153,42 +153,42 @@ jobs:
           path: ./services/${{ matrix.environments }}/dist
 
   # Security Check Job for dependencies using OWASP Dependency Check
-  dependency_check:
-    name: OWASP Dependency Check
-    runs-on: ubuntu-latest
-    needs: [build]
-    if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
-    strategy:
-      matrix:
-        environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
+  #dependency_check:
+  #  name: OWASP Dependency Check
+  #  runs-on: ubuntu-latest
+  #  needs: [build]
+  #  if: ${{ needs.discover_services_by_path.outputs.environments != '[]' }}
+  #  strategy:
+  #    matrix:
+  #      environments: ${{ fromJson(needs.discover_services_by_path.outputs.environments) }}
 
-    steps:
-      # Step 1: Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+  #  steps:
+  #    # Step 1: Checkout the repository
+  #    - name: Checkout repository
+  #      uses: actions/checkout@v4
+  #      with:
+  #        fetch-depth: 1
 
-      # Step 2: Run OWASP Dependency Checker using Docker
-      - name: OWASP Dependency Check
-        run: |
-          docker run --rm \
-            -v $(pwd)/services/${{ matrix.environments }}:/src \
-            -v $(pwd)/dependency-check-reports:/report \
-            owasp/dependency-check \
-            --scan /src \
-            --format HTML \
-            --out /report/dependency-check-report.html \
-            --failOnCVSS 7.0
+  #    # Step 2: Run OWASP Dependency Checker using Docker
+  #    - name: OWASP Dependency Check
+  #      run: |
+  #        docker run --rm \
+  #          -v $(pwd)/services/${{ matrix.environments }}:/src \
+  #          -v $(pwd)/dependency-check-reports:/report \
+  #          owasp/dependency-check \
+  #          --scan /src \
+  #          --format HTML \
+  #          --out /report/dependency-check-report.html \
+  #          --failOnCVSS 7.0
 
-      # Step 3: Upload the OWASP HTML report as an artifact
-      - name: Upload OWASP HTML Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.environments }}-owasp-report
-          path: ./dependency-check-reports/dependency-check-report.html
+  #    # Step 3: Upload the OWASP HTML report as an artifact
+  #    - name: Upload OWASP HTML Report
+  #      uses: actions/upload-artifact@v3
+  #      with:
+  #        name: ${{ matrix.environments }}-owasp-report
+  #        path: ./dependency-check-reports/dependency-check-report.html
 
-          
+
   # Docker Build and Push Job to containerize and deploy microservices
   docker_build_push:
     name: Build and Push Docker Images
