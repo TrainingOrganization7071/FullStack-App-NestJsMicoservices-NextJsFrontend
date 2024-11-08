@@ -184,7 +184,12 @@ jobs:
         run: |
           cd ./frontend_app
           zip -r ../frontend_app.zip .next public package.json package-lock.json
-          ls ./frontend_app
+
+      # Debug compressed file location
+      - name: Verify compressed file
+        run: |
+          ls -la
+          ls -la ./frontend_app.zip
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
@@ -209,3 +214,7 @@ jobs:
 
 
 
+
+
+
+          
