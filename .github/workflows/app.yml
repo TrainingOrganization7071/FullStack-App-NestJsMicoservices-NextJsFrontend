@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - "frontend_app/**"
+    paths-ignore:
+      - "README.md"
+      - ".husky"
+      - .env*
     branches:
       - dev
   pull_request:
@@ -112,7 +116,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: ./frontend_app/.next/**
+          path: ./frontend_app
 
       # Debug: List contents of the build directory
       - name: List build directory
@@ -180,10 +184,16 @@ jobs:
           npm run build --if-present
 
       # Compress the build folder for deployment
-      - name: Compress build output
-        run: |
-          cd ./frontend_app
-          zip -r ../frontend_app.zip .next public package.json package-lock.json
+      #- name: Compress build output
+      #  run: |
+      #    cd ./frontend_app
+      #    zip -r ../frontend_app.zip .next public package.json package-lock.json
+      
+      - name: Zip all files for upload between jobs
+        # IMPORTANT: .next is a hidden folder and will NOT be included in the zip unless we specify it
+        # To fix: /home/site/wwwroot/node_modules/.bin/next: 1: ../next/dist/bin/next: not found
+        working-directory: ./frontend_app
+        run: zip next.zip ./* .next .env -qr
 
       # Debug compressed file location
       - name: Verify compressed file
@@ -197,7 +207,7 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./frontend_app.zip
+          package: ./frontend_app/next.zip
               
               
          
