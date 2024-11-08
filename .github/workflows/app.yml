@@ -4,10 +4,6 @@ on:
   push:
     paths:
       - "frontend_app/**"
-    paths-ignore:
-      - "README.md"
-      - ".husky"
-      - .env*
     branches:
       - dev
   pull_request:
