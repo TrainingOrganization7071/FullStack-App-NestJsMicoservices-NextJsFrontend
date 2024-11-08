@@ -180,7 +180,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: node-app
-          
+
       # Deploy the artifact to Azure Web Application
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
