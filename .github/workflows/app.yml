@@ -107,12 +107,13 @@ jobs:
         working-directory: ./frontend_app
         run: npm run build --if-present
 
+      #Tooks much time to upload the artifact !?
       # Upload build artifact for deployment
-      - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v3
-        with:
-          name: node-app
-          path: ./frontend_app
+      #- name: Upload artifact for deployment
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: node-app
+      #    path: ./frontend_app
 
       # Debug: List contents of the build directory
       - name: List build directory
@@ -185,17 +186,17 @@ jobs:
       #    cd ./frontend_app
       #    zip -r ../frontend_app.zip .next public package.json package-lock.json
       
-      #- name: Zip all files for upload between jobs
-      #  # IMPORTANT: .next is a hidden folder and will NOT be included in the zip unless we specify it
-      #  # To fix: /home/site/wwwroot/node_modules/.bin/next: 1: ../next/dist/bin/next: not found
-      #  working-directory: ./frontend_app
-      #  run: zip next.zip ./* .next .env -qr
+      - name: Zip all files for upload between jobs
+        # IMPORTANT: .next is a hidden folder and will NOT be included in the zip unless we specify it
+        # To fix: /home/site/wwwroot/node_modules/.bin/next: 1: ../next/dist/bin/next: not found
+        working-directory: ./frontend_app
+        run: zip next.zip ./* .next .env -qr
 
       # Debug compressed file location
       - name: Verify compressed file
         run: |
           ls -la
-          ls -la ./frontend_app.zip
+      #    ls -la ./frontend_app.zip
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
