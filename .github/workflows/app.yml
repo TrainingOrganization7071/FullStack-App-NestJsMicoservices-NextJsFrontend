@@ -109,17 +109,22 @@ jobs:
 
       #Tooks much time to upload the artifact !?
       # Upload build artifact for deployment
-      #- name: Upload artifact for deployment
-      #  uses: actions/upload-artifact@v3
-      #  with:
-      #    name: node-app
-      #    path: ./frontend_app
+      - name: Upload artifact for deployment
+        uses: actions/upload-artifact@v2
+        with:
+          name: node-app
+          path: |
+            package.json
+            ./dist
+            ./build
+            ./.next
 
       # Debug: List contents of the build directory
       - name: List build directory
         run: |
           ls -la ./frontend_app
           ls -la ./frontend_app/.next
+          ls -la ./frontend_app/build
 
 
   # Job to Deploy to DockerHub
@@ -168,35 +173,22 @@ jobs:
 
     steps:
       # Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      #- name: Checkout repository
+      #  uses: actions/checkout@v2
+      #  with:
+      #    fetch-depth: 0
 
       # Install dependencies to ensure build is up-to-date
-      - name: Install dependencies
-        run: |
-          cd ./frontend_app
-          npm ci
-          npm run build --if-present
-
-      # Compress the build folder for deployment
-      #- name: Compress build output
+      #- name: Install dependencies
       #  run: |
       #    cd ./frontend_app
-      #    zip -r ../frontend_app.zip .next public package.json package-lock.json
+      #    npm ci
+      #    npm run build --if-present
       
-      #- name: Zip all files for upload between jobs
-      #  # IMPORTANT: .next is a hidden folder and will NOT be included in the zip unless we specify it
-      #  # To fix: /home/site/wwwroot/node_modules/.bin/next: 1: ../next/dist/bin/next: not found
-      #  working-directory: ./frontend_app
-      #  run: zip next.zip ./* .next .env -qr
-
-      # Debug compressed file location
-      - name: Verify compressed file
-        run: |
-          ls -la
-      #    ls -la ./frontend_app.zip
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: node-app
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
@@ -204,7 +196,7 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./frontend_app
+          package: .
               
          
 
