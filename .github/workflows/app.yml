@@ -110,7 +110,7 @@ jobs:
       #Tooks much time to upload the artifact !?
       # Upload build artifact for deployment
       - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: node-app
           path: |
