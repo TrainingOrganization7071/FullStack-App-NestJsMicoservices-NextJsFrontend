@@ -99,22 +99,20 @@ jobs:
 
       # Install dependencies
       - name: Install dependencies
-        run: |
-          cd ./frontend_app
-          npm ci
+        working-directory: ./frontend_app
+        run: npm ci
 
       # Build application
       - name: Run Build
-        run: |
-          cd ./frontend_app
-          npm run build --if-present
+        working-directory: ./frontend_app
+        run: npm run build --if-present
 
       # Upload build artifact for deployment
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: frontend_app/.next/**
+          path: ./frontend_app/.next/**
 
       # Debug: List contents of the build directory
       - name: List build directory
@@ -149,6 +147,9 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Verify Docker Login
+        run: docker info
+        
       # Build and push Docker image to DockerHub
       - name: Build and Push Docker Image
         run: |
@@ -178,13 +179,20 @@ jobs:
           npm ci
           npm run build --if-present
 
+      # Compress the build folder for deployment
+      - name: Compress build output
+        run: |
+          cd ./frontend_app
+          zip -r ../frontend_app.zip .next public package.json package-lock.json
+          ls ./frontend_app
+
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          package: ./frontend_app.zip
               
               
          
