@@ -185,71 +185,22 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ matrix.environments }}:latest
 
 
-  #Deploy All Microservice docker images to ACR
-  deploy_To_ACR:
-    name: 'Build and Push to ACR'
-    runs-on: ubuntu-latest
-    needs: [build]
-    strategy:
-      matrix:
-        environments: ${{ fromJson(needs.build.outputs.environments || '[]') }}
-    outputs:
-      environments: ${{ needs.build.outputs.environments }}
-    env:
-      ACR_NAME: "containerRegistry1alnqmasz"
-
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch full commit history, not a shallow clone
-
-      - name: Azure ACR [Docker Rejistry] Login
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ env.ACR_NAME }}.azurecr.io
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
-
-      # Display the content of the Dockerfile
-      - name: Display Dockerfile content
-        run: |
-           cat ./services/${{ matrix.environments }}/Dockerfile
-           
-      # Build the Docker Image
-      - name: Build Docker Image
-        run: |
-          docker build -t ${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
-
-      - name: Tag Docker Image for ACR
-        run: |
-          docker tag ${{ matrix.environments }}:latest  ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
-
-      - name: Push Docker Image to ACR
-        run: |
-          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
-
-
-
-
-
-
-
-
-
-#########################################################################################
-#########################################################################################
-#########################################################################################
-#  discover_services_from_json:
-#    name: Find out all the microservies from json file
+#  #Deploy All Microservice docker images to ACR
+#  deploy_To_ACR:
+#    name: 'Build and Push to ACR'
 #    runs-on: ubuntu-latest
+#    needs: [build]
+#    strategy:
+#      matrix:
+#        environments: ${{ fromJson(needs.build.outputs.environments || '[]') }}
 #    outputs:
-#      environments: ${{ steps.load_services.outputs.services }}
-#      changed_microservices: ${{ steps.detect_changes.outputs.changed_microservices }}
+#      environments: ${{ needs.build.outputs.environments }}
+#    env:
+#      ACR_NAME: "containerRegistry1alnqmasz"
+#
+#    defaults:
+#      run:
+#        shell: bash
 #
 #    steps:
 #      - name: Checkout repository
@@ -257,39 +208,120 @@ jobs:
 #        with:
 #          fetch-depth: 0  # Fetch full commit history, not a shallow clone
 #
-#      # Load microservices names from JSON
-#      - name: Load microservices from JSON
-#        id: load_services
-#        run: |
-#          services=$(jq -r '.microservices[] | .name' ./.github/workflows/microservices.json | paste -sd "," -)
-#          # Output values as single-line strings
-#          echo "Services: $services"
-#          echo "services=$services" >> $GITHUB_OUTPUT
+#      - name: Azure ACR [Docker Rejistry] Login
+#        uses: azure/docker-login@v1
+#        with:
+#          login-server: ${{ env.ACR_NAME }}.azurecr.io
+#          username: ${{ secrets.ACR_USERNAME }}
+#          password: ${{ secrets.ACR_PASSWORD }}
 #
-#      # Load microservices names from JSON -> return array
-#      # Detect changed microservices
-#      - name: Detect changed microservices
-#        id: detect_changes
+#      # Display the content of the Dockerfile
+#      - name: Display Dockerfile content
 #        run: |
-#          services=$(jq -r '.microservices[] | .name' ./.github/workflows/microservices.json)
-#          changed_services=()
-#          for service in $services; do
-#            if git diff --name-only HEAD^ HEAD | grep -q "^services/$service/"; then
-#              changed_services+=("\"$service\"")
-#            fi
-#          done
-#          # Format changed_microservices as a JSON array
-#          if [ ${#changed_services[@]} -eq 0 ]; then
-#            json_output="[]"
-#          else
-#            json_output=$(IFS=,; echo "[${changed_services[*]}]")
-#          fi
-#          echo "changed_microservices=$json_output" >> $GITHUB_OUTPUT
+#           cat ./services/${{ matrix.environments }}/Dockerfile
+#           
+#      # Build the Docker Image
+#      - name: Build Docker Image
+#        run: |
+#          docker build -t ${{ matrix.environments }}:latest ./services/${{ matrix.environments }}
 #
-#      - name: Debug changed_microservices output
+#      - name: Tag Docker Image for ACR
 #        run: |
-#          echo "Changed microservices: ${{ steps.detect_changes.outputs.changed_microservices }}"
-#########################################################################################
-#########################################################################################
-#########################################################################################
+#          docker tag ${{ matrix.environments }}:latest  ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
+#
+#      - name: Push Docker Image to ACR
+#        run: |
+#          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ matrix.environments }}:latest
+
+
+#az aks update -n <aks-cluster-name> -g <resource-group-name> --attach-acr <acr-name>
+#  # Deploy to Azure Kubernetes Cluster
+#  Deploy_To_AKS:
+#    runs-on: ubuntu-latest
+#    needs: [ deploy_To_ACR ]
+#    strategy:
+#      matrix:
+#        environments: ${{ fromJson(needs.deploy_To_ACR.outputs.environments || '[]') }}
+#
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0  # Fetch full commit history, not a shallow clone
+#
+#      - name: Install Azure CLI
+#        run: |
+#          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+#
+#      # Use kubelogin to configure your kubeconfig for Azure auth
+#      - name: Set up kubelogin for non-interactive login
+#        uses: azure/use-kubelogin@v1
+#        with:
+#          kubelogin-version: 'v0.0.25'
+#        
+#      # Login to Azure using the service principal credentials
+#      - name: Azure Login -> Creds
+#        uses: azure/login@v2
+#        with:
+#          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+#
+#
+#      # Retrieves your Azure Kubernetes Service cluster's kubeconfig file
+#      - name: Get K8s context
+#        uses: azure/aks-set-context@v3
+#        with:
+#          resource-group: ${{ env.RESOURCE_GROUP }}
+#          cluster-name: ${{ env.CLUSTER_NAME }}
+#          admin: 'false'
+#          use-kubelogin: 'true'
+#        
+#      # Install kubectl manually
+#      - name: Install kubectl
+#        run: |
+#          sudo az aks install-cli
+#
+#      # Get Nodes - test
+#      - name: Get Nodes
+#        run: |
+#          kubectl get nodes
+#        
+#      # ECHO - test
+#      - name: ECHO
+#        run: |
+#          echo  "--------------------------------"
+#          echo  "--------------------------------"
+#
+#      # Replace the placeholders in the Kubernetes manifest with the actual ACR URL, image name, and tag
+#      - name: Replace image placeholders in deployment.yml
+#        run: |
+#          sed -i 's|ACR_URL_PLACEHOLDER|${{ env.ACR_NAME }}.azurecr.io|g' ./${{ matrix.environments }}/k8s/deployment.yml
+#          sed -i 's|IMAGE_NAME_PLACEHOLDER|${{ matrix.docker_image_name }}-microservice|g' ./${{ matrix.environments }}/k8s/deployment.yml
+#          sed -i 's|IMAGE_TAG_PLACEHOLDER|${{ env.DOCKER_IMAGE_TAG }}|g' ./${{ matrix.environments }}/k8s/deployment.yml
+#          sed -i "s|REDEPLOY_TIMESTAMP_PLACEHOLDER|$(date +%s)|g" ./${{ matrix.environments }}/k8s/deployment.yml
+#
+#      # ECHO Deployment.yml - Display Content of Manifest
+#      - name: Echo Deployment Manifest
+#        run: |
+#          echo "Displaying the content of the deployment manifest for ${{ matrix.environments }}:"
+#          cat ./${{ matrix.environments }}/k8s/deployment.yml
+#
+#      # Deploys application based on given manifest file
+#      - name: Deploys application
+#        uses: Azure/k8s-deploy@v4
+#        with:
+#          action: deploy
+#          manifests: ./${{ matrix.environments }}/k8s/deployment.yml
+#          force: true  # Force redeployment even if deployment already exists
+#
+#      # Fetch detailed deployment logs
+#      - name: Get Deployment Logs
+#        run: |
+#          kubectl describe deployment ${{ matrix.docker_image_name }}-deployment --v=6
+#          kubectl logs deployment/${{ matrix.docker_image_name }}-deployment --v=6
+
+
+
+
+
+
 
