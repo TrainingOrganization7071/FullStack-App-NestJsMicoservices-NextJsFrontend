@@ -186,11 +186,11 @@ jobs:
       #    cd ./frontend_app
       #    zip -r ../frontend_app.zip .next public package.json package-lock.json
       
-      - name: Zip all files for upload between jobs
-        # IMPORTANT: .next is a hidden folder and will NOT be included in the zip unless we specify it
-        # To fix: /home/site/wwwroot/node_modules/.bin/next: 1: ../next/dist/bin/next: not found
-        working-directory: ./frontend_app
-        run: zip next.zip ./* .next .env -qr
+      #- name: Zip all files for upload between jobs
+      #  # IMPORTANT: .next is a hidden folder and will NOT be included in the zip unless we specify it
+      #  # To fix: /home/site/wwwroot/node_modules/.bin/next: 1: ../next/dist/bin/next: not found
+      #  working-directory: ./frontend_app
+      #  run: zip next.zip ./* .next .env -qr
 
       # Debug compressed file location
       - name: Verify compressed file
@@ -204,7 +204,7 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./frontend_app/next.zip
+          package: ./frontend_app
               
          
 
