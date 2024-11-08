@@ -114,7 +114,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: frontend_app/.next
+          path: frontend_app/.next/**
+
+      # Debug: List contents of the build directory
+      - name: List build directory
+        run: |
+          ls -la ./frontend_app
+          ls -la ./frontend_app/.next
 
 
   # Job to Deploy to DockerHub
