@@ -122,9 +122,7 @@ jobs:
         with:
           name: node-app
           path: |
-            ./frontend_app/.next/static
-            ./frontend_app/.next/server
-            ./frontend_app/public
+            ./frontend_app/.next
 
       # Debug: List contents of the build directory
       - name: List build directory
@@ -176,6 +174,18 @@ jobs:
     environment:
       name: 'Production'
     steps:
+      #Step to wait for aproval
+      #- name: Wait_for_approval Action
+      #  uses: arun291091/wait_for_approval_gha@v1
+      #  with:
+      #    base_repository_branch: <Base branch name>
+      #    github_org: <org name>
+      #    repository_name: <repo name>
+      #    pr_reviewer: <reviewer1>,<reviewer2>,<reviewer3>
+      #    time_limit: <time wait for approval in Seconds>
+      #    github_token: <Github auth token>
+      
+      # Download the artifacts from the build job    
       - name: Download artifact from build job
         uses: actions/download-artifact@v3
         with:
