@@ -85,7 +85,7 @@ jobs:
 
       # Verify deployment structure (optional)
       - name: Verify deployment structure
-        run: tree ./unzipped
+        run: ls ./unzipped
         
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
