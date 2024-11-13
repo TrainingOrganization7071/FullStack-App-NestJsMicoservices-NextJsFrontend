@@ -117,6 +117,7 @@ jobs:
 
       - name: Copy static files
         run: |
+          cd ./frontend_app
           cp -R ./public ./.next/standalone/public
           cp -R ./.next/static ./.next/standalone/.next/static
       
@@ -133,6 +134,7 @@ jobs:
         run: |
           ls -la ./frontend_app
           ls -la ./frontend_app/.next
+          ls -la ./frontend_app/.next/standalone
 
 
   # Job to Deploy to DockerHub
