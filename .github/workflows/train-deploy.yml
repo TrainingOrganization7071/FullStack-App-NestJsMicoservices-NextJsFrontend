@@ -17,7 +17,7 @@ env:
 
 jobs:
   
-  # Job to Build and Deploy Application
+  # Job to Build and Upload Artifacts
   Build:
     runs-on: ubuntu-latest
 
@@ -50,36 +50,43 @@ jobs:
           cp -R ./.next/static ./.next/standalone/.next/static
 
       # Zip the build artifacts for deployment
-      #- name: Create ZIP for deployment
-      #  run: |
-      #    cd ./frontend_app/.next/standalone
-      #    zip -r app.zip ./*
-    
+      - name: Create ZIP for deployment
+        run: |
+          cd ./frontend_app/.next/standalone
+          zip -r app.zip ./*
+
+      # Upload artifact for deployment
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: ./frontend_app/.next/standalone
+          path: ./frontend_app/.next/standalone/app.zip
 
+  # Job to Deploy Artifacts to Azure Web App
   Deploy:
     runs-on: ubuntu-latest
     needs: Build  
     
     environment:
       name: production
-      #url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}   
 
     steps:
+      # Download artifact from build job
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: app
 
-      # Veify artifacts downloaded
+      # Verify downloaded artifacts
       - name: Verify downloaded artifacts
         run: |
           ls -la 
-  
+          unzip app.zip -d ./unzipped
+
+      # Verify deployment structure (optional)
+      - name: Verify deployment structure
+        run: tree ./unzipped
+        
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -87,4 +94,4 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./
+          package: ./unzipped
