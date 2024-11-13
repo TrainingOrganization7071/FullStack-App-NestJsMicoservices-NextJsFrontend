@@ -1,0 +1,11 @@
+{
+    "microservices": [
+      {
+        "name": "auth"
+      },
+      {
+        "name": "microone"
+      }
+    ]
+  }
+

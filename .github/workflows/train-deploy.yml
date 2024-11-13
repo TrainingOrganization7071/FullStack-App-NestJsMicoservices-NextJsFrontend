@@ -1,0 +1,105 @@
+name: Training Step -> CI/CD Pipeline for FrontEnd NextJs(Web App)
+
+on:
+  push:
+    paths:
+      - "frontend_app/**"
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+  workflow_dispatch:
+
+env:
+  AZURE_RESOURCE_GROUP: 'minimal_infra_auth'
+  AZURE_WEBAPP_NAME: 'webapp-frontend-ongyhoboyqefogmz'
+
+jobs:
+  
+  # Job to Build and Upload Artifacts
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      # Install dependencies and build
+      - name: Install dependencies and Build
+        run: |
+          cd ./frontend_app
+          npm ci
+          npm run build
+
+      # Prepare deployment package
+      - name: Prepare deployment package
+        run: |
+          cd ./frontend_app
+          mkdir -p ./.next/standalone/public
+          cp -R ./public ./.next/standalone/public
+          cp -R ./.next/static ./.next/standalone/.next/static
+          cp -R ./.next/server ./.next/standalone/.next/server
+          cp ./package.json ./.next/standalone/
+
+      # Verify Standalone
+      - name: Verify standalone
+        run: |
+          cd ./frontend_app/.next/standalone
+          ls -la 
+    
+      # Zip the build artifacts for deployment
+      - name: Create ZIP for deployment
+        run: |
+          cd ./frontend_app/.next/standalone
+          zip -r app.zip . 
+
+      # Upload artifact for deployment
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: ./frontend_app/.next/standalone/app.zip
+
+  # Job to Deploy Artifacts to Azure Web App
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: Build  
+    
+    environment:
+      name: production
+
+    steps:
+      # Download artifact from build job
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: app
+
+      # Verify downloaded artifacts
+      - name: Verify downloaded artifacts
+        run: |
+          ls -la 
+          unzip app.zip -d ./unzipped
+
+      # Verify deployment structure (optional)
+      - name: Verify deployment structure
+        run: ls -la ./unzipped
+        
+      # Deploy to Azure Web App
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./unzipped
