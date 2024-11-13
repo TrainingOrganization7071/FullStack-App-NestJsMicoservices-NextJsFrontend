@@ -186,29 +186,29 @@ jobs:
       #    github_token: <Github auth token>
       
       # Download the artifacts from the build job    
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v3
-        with:
-          name: node-app
-    
-      # Set up Node.js environment
-      #- name: Set up Node.js
-      #  uses: actions/setup-node@v4
+      #- name: Download artifact from build job
+      #  uses: actions/download-artifact@v3
       #  with:
-      #    node-version: '20.x'
+      #    name: node-app
       
       # Checkout code
-      #- name: Checkout repository
-      #  uses: actions/checkout@v2
-      #  with:
-      #    fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
 
       # Install dependencies to ensure build is up-to-date
-      #- name: Install dependencies
-      #  run: |
-      #    cd ./frontend_app
-      #    npm ci
-      #    npm run build --if-present
+      - name: Install dependencies
+        run: |
+          cd ./frontend_app
+          npm ci
+          npm run build --if-present
 
       # Deploy the artifact to Azure Web Application
       - name: Deploy to Azure Web App
@@ -216,7 +216,7 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package:  .
+          package:  ./frontend_app
               
          
 
