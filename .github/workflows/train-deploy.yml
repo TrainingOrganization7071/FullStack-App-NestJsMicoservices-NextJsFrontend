@@ -50,10 +50,10 @@ jobs:
           cp -R ./.next/static ./.next/standalone/.next/static
 
       # Zip the build artifacts for deployment
-      - name: Create ZIP for deployment
-        run: |
-          cd ./frontend_app/.next/standalone
-          zip -r app.zip ./*
+      #- name: Create ZIP for deployment
+      #  run: |
+      #    cd ./frontend_app/.next/standalone
+      #    zip -r app.zip ./*
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
