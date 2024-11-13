@@ -54,6 +54,12 @@ jobs:
       #  run: |
       #    cd ./frontend_app/.next/standalone
       #    zip -r app.zip ./*
+    
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: ./frontend_app/.next/standalone
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
