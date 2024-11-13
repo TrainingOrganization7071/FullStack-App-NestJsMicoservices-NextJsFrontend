@@ -13,7 +13,7 @@ on:
 
 env:
   AZURE_RESOURCE_GROUP: 'minimal_infra_auth'
-  AZURE_WEBAPP_NAME: 'webapp-frontend-rsfqezxolwlvlodm'
+  AZURE_WEBAPP_NAME: 'webapp-frontend-uyeaukzciksitram'
 
 jobs:
   
