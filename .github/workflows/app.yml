@@ -19,11 +19,25 @@ env:
   AZURE_WEBAPP_PACKAGE_PATH: './frontend_app'
 
 jobs:
+  
+  #Scans pull requests for dependency changes
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@v4
 
+        
   # Job to Lint Code
   Lint:
     runs-on: ubuntu-latest
+    needs: dependency-review  # Ensure dependency review is successful before linting
+
     steps:
       # Checkout code
       - name: Checkout repository
