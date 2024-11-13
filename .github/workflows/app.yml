@@ -123,10 +123,10 @@ jobs:
       
       #Tooks much time to upload the artifact !?
       # Upload build artifact for deployment
-      - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v3
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
         with:
-          name: node-app
+          name: app
           path: ./.next/standalone
 
       # Debug: List contents of the build directory
@@ -179,6 +179,8 @@ jobs:
     needs: Build
     environment:
       name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
     steps:
       #Step to wait for aproval
       #- name: Wait_for_approval Action
@@ -214,10 +216,11 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: app
 
       # Deploy the artifact to Azure Web Application
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
