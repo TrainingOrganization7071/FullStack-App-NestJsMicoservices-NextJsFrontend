@@ -41,19 +41,27 @@ jobs:
           npm ci
           npm run build
 
-      # Package the build files
+      # Prepare deployment package
       - name: Prepare deployment package
         run: |
           cd ./frontend_app
           mkdir -p ./.next/standalone/public
           cp -R ./public ./.next/standalone/public
           cp -R ./.next/static ./.next/standalone/.next/static
+          cp -R ./.next/server ./.next/standalone/.next/server
+          cp ./package.json ./.next/standalone/
 
+      # Verify Standalone
+      - name: Verify standalone
+        run: |
+          cd ./frontend_app/.next/standalone
+          ls -la 
+    
       # Zip the build artifacts for deployment
       - name: Create ZIP for deployment
         run: |
           cd ./frontend_app/.next/standalone
-          zip -r app.zip ./*
+          zip -r app.zip . 
 
       # Upload artifact for deployment
       - name: Upload artifact for deployment job
