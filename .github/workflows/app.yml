@@ -1,11 +1,11 @@
 name: CI/CD Pipeline for FrontEnd NextJs - Web App
 
 on:
-  push:
-    paths:
-      - "frontend_app/**"
-    branches:
-      - dev
+  #push:
+  #  paths:
+  #    - "frontend_app/**"
+  #  branches:
+  #    - dev
   pull_request:
     branches:
       - dev
